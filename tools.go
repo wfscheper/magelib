@@ -15,9 +15,11 @@ import (
 const (
 	BinGolangciLint = "golangci-lint"
 	BinGotestsum    = "gotestsum"
+	BinGoreleaser   = "goreleaser"
 
 	ModuleGolangciLint = "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	ModuleGotestsum    = "gotest.tools/gotestsum"
+	ModuleGoreleaser   = "github.com/goreleaser/goreleaser"
 
 	toolsDir  = "tools"
 	toolsData = `// +build tools
@@ -68,18 +70,12 @@ func (Tools) Init(ctx context.Context) error {
 	}
 
 	toolsGo := filepath.Join(toolsDir, "tools.go")
-	if rebuild, _ := target.Path(toolsGo); rebuild {
-		var imports string
-		for module := range ProjectTools {
-			imports += "\n\t_ \"" + module + "\""
-		}
-
-		if err := ioutil.WriteFile(toolsGo, []byte(fmt.Sprintf(toolsData, imports)), 0644); err != nil {
-			return err
-		}
+	var imports string
+	for module := range ProjectTools {
+		imports += "\n\t_ \"" + module + "\""
 	}
 
-	return nil
+	return ioutil.WriteFile(toolsGo, []byte(fmt.Sprintf(toolsData, imports)), 0644)
 }
 
 func GetGolangciLint(version string) ToolFunc {
@@ -99,6 +95,10 @@ func GetGoTool(module, name, version string) ToolFunc {
 		}
 		return err
 	}
+}
+
+func GetGoreleaser(version string) ToolFunc {
+	return GetGoTool(ModuleGoreleaser, BinGoreleaser, version)
 }
 
 func goGet(ctx context.Context, s string) error {

@@ -27,6 +27,7 @@ var (
 	BuildDeps    []interface{}
 	GenerateDeps []interface{}
 	LintDeps     []interface{}
+	ReleaseDeps  []interface{}
 	TestDeps     []interface{}
 
 	goexe = "go"
@@ -130,7 +131,7 @@ func (Go) Clean(ctx context.Context) error {
 	Say("cleaning files")
 
 	var err error
-	for _, path := range []string{"bin", testDir, toolsBinDir} {
+	for _, path := range []string{"bin", "dist", testDir, toolsBinDir} {
 		err = sh.Rm(path)
 	}
 
@@ -157,6 +158,20 @@ func (Go) Lint(ctx context.Context) error {
 	mg.CtxDeps(ctx, LintDeps...)
 	Say("running pre-commit hooks")
 	return sh.RunV("pre-commit", "run", "--all-files")
+}
+
+// Release runs goreleaser to create a release. Must set MAGELIB_DRY_RUN=false.
+func (Go) Release(ctx context.Context) error {
+	mg.CtxDeps(ctx, ReleaseDeps...)
+	if dryRun, err := strconv.ParseBool(os.Getenv("MAGELIB_DRY_RUN")); err != nil || dryRun {
+		// run goreleaser in snapshot mode
+		Say("running goreleaser test")
+		return sh.Run(goreleaserPath, "--snapshot", "--skip-publish", "--rm-dist")
+	}
+
+	// run for reals
+	Say("running golreleaser")
+	return sh.Run(goreleaserPath)
 }
 
 // Test runs the test suite
