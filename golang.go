@@ -2,6 +2,7 @@ package magelib
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
-	"github.com/magefile/mage/target"
 )
 
 const (
@@ -19,16 +19,23 @@ const (
 )
 
 var (
-	ExeName     string
+	// ExeName sets the filename of a CLI executable.
+	ExeName string
+	// MainPackage sets the full package name of the main package
+	// This is needed if main.go isn't at the root.
 	MainPackage string
-
-	// Configurable deps
-
-	BuildDeps    []interface{}
+	// BuildDeps is a slice of targets that are dependencies for go:build
+	BuildDeps []interface{}
+	// GenerateDeps is a slice of targets that are dependencies for go:generate
 	GenerateDeps []interface{}
-	LintDeps     []interface{}
-	ReleaseDeps  []interface{}
-	TestDeps     []interface{}
+	// LintDeps is a slice of targets that are dependencies for go:lint
+	LintDeps []interface{}
+	// ReleaseDeps is a slice of targets that are dependencies for go:release
+	ReleaseDeps []interface{}
+	// TestDeps is a slice of targets that are dependencies for go:test
+	TestDeps []interface{}
+	// GenerateRebuild is a function that returns whether go:generate needs to run or not.
+	GenerateRebuild = func(_ context.Context) (bool, error) { return true, nil }
 
 	goexe = "go"
 
@@ -50,16 +57,6 @@ var (
 	gotestArgs = []string{"--", "-timeout=15s"}
 )
 
-func init() {
-	// Force use of go modules
-	os.Setenv("GO111MODULES", "on")
-	if runtime.GOOS == "windows" {
-		golangcilintPath += ".exe"
-		goreleaserPath += ".exe"
-		gotestsumPath += ".exe"
-	}
-}
-
 type Go mg.Namespace
 
 // Benchmark runs the benchmark suite
@@ -74,27 +71,16 @@ func (Go) Build(ctx context.Context) error {
 	return gobuild("-v", "./...")
 }
 
-// Exec builds the main binary
-func (g Go) Exec(ctx context.Context) error {
-	mg.CtxDeps(ctx, append(BuildDeps, g.Generate)...)
+// Clean removes generated files
+func (Go) Clean(ctx context.Context) error {
+	Say("cleaning files")
 
-	Say("building " + ExeName)
-	version, err := sh.Output("git", "describe", "--tags", "--always", "--dirty", "--match=v*")
-	if err != nil {
-		return err
+	var err error
+	for _, path := range []string{"bin", "dist", testDir, toolsBinDir} {
+		err = sh.Rm(path)
 	}
 
-	commit, err := sh.Output("git", "rev-parse", "HEAD")
-	if err != nil {
-		return err
-	}
-
-	buildDate := time.Now().UTC()
-	ldflags := "-X main.version=" + version +
-		" -X main.commit=" + commit +
-		" -X main.buildDate=" + buildDate.Format(time.RFC3339)
-
-	return gobuild("-v", "-o", filepath.Join("bin", ExeName), "-ldflags", ldflags, MainPackage)
+	return err
 }
 
 // Coverage generates coverage reports
@@ -126,26 +112,43 @@ func (Go) Coverage(ctx context.Context) error {
 	return nil
 }
 
-// Clean removes generated files
-func (Go) Clean(ctx context.Context) error {
-	Say("cleaning files")
+// Exec builds the main binary
+func (g Go) Exec(ctx context.Context) error {
+	mg.CtxDeps(ctx, append(BuildDeps, g.Generate)...)
 
-	var err error
-	for _, path := range []string{"bin", "dist", testDir, toolsBinDir} {
-		err = sh.Rm(path)
+	if ExeName == "" {
+		return errors.New("no executable name set")
 	}
 
-	return err
+	exe := ExeName
+	if runtime.GOOS == "windows" {
+		exe += ".exe"
+	}
+
+	Say("building " + exe)
+	version, err := sh.Output("git", "describe", "--tags", "--always", "--dirty", "--match=v*")
+	if err != nil {
+		return err
+	}
+
+	commit, err := sh.Output("git", "rev-parse", "HEAD")
+	if err != nil {
+		return err
+	}
+
+	buildDate := time.Now().UTC()
+	ldflags := "-X main.version=" + version +
+		" -X main.commit=" + commit +
+		" -X main.buildDate=" + buildDate.Format(time.RFC3339)
+
+	return gobuild("-v", "-o", filepath.Join("bin", exe), "-ldflags", ldflags, MainPackage)
 }
 
 // Generate runs go generate
 func (Go) Generate(ctx context.Context) error {
 	mg.CtxDeps(ctx, GenerateDeps...)
 
-	rebuild, err := target.Dir(
-		filepath.Join("internal", "templates", "rice-box.go"),
-		filepath.Join("internal", "templates", "templates"),
-	)
+	rebuild, err := GenerateRebuild(ctx)
 	if err == nil && rebuild {
 		Say("running go generate")
 		return sh.RunV(goexe, "generate", "-x", "./...")
@@ -156,22 +159,34 @@ func (Go) Generate(ctx context.Context) error {
 // Lint runs golangci-lint
 func (Go) Lint(ctx context.Context) error {
 	mg.CtxDeps(ctx, LintDeps...)
-	Say("running pre-commit hooks")
-	return sh.RunV("pre-commit", "run", "--all-files")
+
+	exe := golangcilintPath
+	if runtime.GOOS == "windows" {
+		exe += ".exe"
+	}
+
+	Say("running golangci-lint")
+	return sh.RunV(exe, "run")
 }
 
 // Release runs goreleaser to create a release. Must set MAGELIB_DRY_RUN=false.
 func (Go) Release(ctx context.Context) error {
 	mg.CtxDeps(ctx, ReleaseDeps...)
+
+	exe := goreleaserPath
+	if runtime.GOOS == "windows" {
+		exe += ".exe"
+	}
+
 	if dryRun, err := strconv.ParseBool(os.Getenv("MAGELIB_DRY_RUN")); err != nil || dryRun {
 		// run goreleaser in snapshot mode
 		Say("running goreleaser test")
-		return sh.Run(goreleaserPath, "--snapshot", "--skip-publish", "--rm-dist")
+		return sh.RunV(exe, "--snapshot", "--skip-publish", "--rm-dist")
 	}
 
 	// run for reals
 	Say("running golreleaser")
-	return sh.Run(goreleaserPath)
+	return sh.RunV(exe)
 }
 
 // Test runs the test suite
@@ -216,5 +231,10 @@ func runTests(testType ...string) error {
 		testType = append(testType, "./...")
 	}
 	testType = append(gotestArgs, testType...)
-	return sh.RunV(gotestsumPath, testType...)
+
+	exe := gotestsumPath
+	if runtime.GOOS == "windows" {
+		exe += ".exe"
+	}
+	return sh.RunV(exe, testType...)
 }

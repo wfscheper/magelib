@@ -24,30 +24,30 @@ import (
 	"github.com/wfscheper/magelib"
 )
 
-const (
-	moduleRice = "github.com/GeertJohan/go.rice/rice"
-)
-
 var (
 	// Default mage target
 	Default = All
 
-	getGolangciLint = magelib.GetGolangciLint("v1.26.0")
-	getGotestsum    = magelib.GetGotestsum("v0.4.1")
-	getRice         = magelib.GetGoTool(moduleRice, "rice", "v1.0.0")
+	getGolangciLint = magelib.GetGolangciLint("v1.32.2")
+	getGoreleaser   = magelib.GetGoreleaser("v0.146.0")
+	getGotestsum    = magelib.GetGotestsum("v0.6.0")
 )
 
 func init() {
-	magelib.ExeName = "stentor"
-
-	magelib.GenerateDeps = []interface{}{
-		func(ctx context.Context) error { return getRice(ctx) },
+	magelib.LintDeps = []interface{}{
+		func(ctx context.Context) error { return getGolangciLint(ctx) },
+	}
+	magelib.ReleaseDeps = []interface{}{
+		func(ctx context.Context) error { return getGoreleaser(ctx) },
+	}
+	magelib.TestDeps = []interface{}{
+		func(ctx context.Context) error { return getGotestsum(ctx) },
 	}
 
-	magelib.ProjectTools = map[string]magelib.ToolFunc{
+	magelib.ProjectTools = magelib.ToolMap{
 		magelib.ModuleGolangciLint: getGolangciLint,
+		magelib.ModuleGoreleaser:   getGoreleaser,
 		magelib.ModuleGotestsum:    getGotestsum,
-		moduleRice:                 getRice,
 	}
 }
 

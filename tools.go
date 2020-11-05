@@ -31,12 +31,17 @@ import (%s
 `
 )
 
+// ToolFunc is a function that installs a tool.
+type ToolFunc func(context.Context) error
+
+type ToolMap map[string]ToolFunc
+
 var (
-	ProjectTools map[string]ToolFunc
+	// ProjectTools maps tool names to a ToolFunc that installs the tool
+	ProjectTools ToolMap
 )
 
-type ToolFunc func(ctx context.Context) error
-
+// Tools is the naespace for all build tool targets.
 type Tools mg.Namespace
 
 // Build gets and compiles project tools
@@ -78,14 +83,17 @@ func (Tools) Init(ctx context.Context) error {
 	return ioutil.WriteFile(toolsGo, []byte(fmt.Sprintf(toolsData, imports)), 0644)
 }
 
+// GetGolangciLint returns a ToolFunc that uses `go get` to install a specific version of golangci-lint .
 func GetGolangciLint(version string) ToolFunc {
 	return GetGoTool(ModuleGolangciLint, BinGolangciLint, version)
 }
 
+// GetGotestsum returns a ToolFunc that uses `go get` to install a specific version of gotestsum.
 func GetGotestsum(version string) ToolFunc {
 	return GetGoTool(ModuleGotestsum, BinGotestsum, version)
 }
 
+// GetGoTool returns a ToolFunc that uses `go get` to install a specific version of a module as name.
 func GetGoTool(module, name, version string) ToolFunc {
 	return func(ctx context.Context) error {
 		rebuild, err := target.Glob(filepath.Join(toolsBinDir, name), filepath.Join(toolsDir, "go.*"))
@@ -93,10 +101,13 @@ func GetGoTool(module, name, version string) ToolFunc {
 			Say("building %s@%s", module, version)
 			return goGet(ctx, module+"@"+version)
 		}
+
+		Say("%s@%s up-to-date", module, version)
 		return err
 	}
 }
 
+// GetGoreleaser returns a ToolFunc that uses `go get` to install a specific versino of goreleaser.
 func GetGoreleaser(version string) ToolFunc {
 	return GetGoTool(ModuleGoreleaser, BinGoreleaser, version)
 }
