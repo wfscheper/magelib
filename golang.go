@@ -3,6 +3,7 @@ package magelib
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -34,6 +35,8 @@ var (
 	ReleaseDeps []interface{}
 	// TestDeps is a slice of targets that are dependencies for go:test
 	TestDeps []interface{}
+	// TestTimeout sets the duration tests are allowed to run.
+	TestTimeout = 15 * time.Second
 	// GenerateRebuild is a function that returns whether go:generate needs to run or not.
 	GenerateRebuild = func(_ context.Context) (bool, error) { return true, nil }
 
@@ -52,9 +55,6 @@ var (
 	// commands
 	gobuild = sh.RunCmd(goexe, "build")
 	govet   = sh.RunCmd(goexe, "vet")
-
-	// args
-	gotestArgs = []string{"--", "-timeout=15s"}
 )
 
 type Go mg.Namespace
@@ -225,6 +225,7 @@ func mkCoverageDir(ctx context.Context) error {
 }
 
 func runTests(testType ...string) error {
+	gotestArgs := []string{"--", fmt.Sprintf("-timeout=%s", TestTimeout)}
 	if update, err := strconv.ParseBool(os.Getenv("UPDATE_GOLDEN")); err == nil && update {
 		testType = append(testType, "./cmd/stentor", "-update")
 	} else {
