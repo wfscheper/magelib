@@ -14,6 +14,7 @@ require (
 	github.com/securego/gosec v0.0.0-20200316084457-7da9f46445fd // indirect
 	github.com/ugorji/go v1.1.4 // indirect
 	github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8 // indirect
+	github.com/wfscheper/stentor v0.2.0 // indirect
 	github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77 // indirect
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/gemnasium/logrus-airbrake-hook.v2 v2.1.2 // indirect
