@@ -47,7 +47,6 @@ var (
 	coverageProfile = filepath.Join(coverageDir, "coverage.out")
 
 	// tools
-	toolsBinDir      = filepath.Join(toolsDir, "bin")
 	golangcilintPath = filepath.Join(toolsBinDir, "golangci-lint")
 	goreleaserPath   = filepath.Join(toolsBinDir, "goreleaser")
 	gotestsumPath    = filepath.Join(toolsBinDir, "gotestsum")

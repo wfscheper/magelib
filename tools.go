@@ -16,10 +16,12 @@ const (
 	BinGolangciLint = "golangci-lint"
 	BinGotestsum    = "gotestsum"
 	BinGoreleaser   = "goreleaser"
+	BinStentor      = "stentor"
 
 	ModuleGolangciLint = "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	ModuleGotestsum    = "gotest.tools/gotestsum"
 	ModuleGoreleaser   = "github.com/goreleaser/goreleaser"
+	ModuleStentor      = "github.com/wfscheper/stentor/cmd/stentor"
 
 	toolsDir  = "tools"
 	toolsData = `// +build tools
@@ -83,16 +85,6 @@ func (Tools) Init(ctx context.Context) error {
 	return ioutil.WriteFile(toolsGo, []byte(fmt.Sprintf(toolsData, imports)), 0644)
 }
 
-// GetGolangciLint returns a ToolFunc that uses `go get` to install a specific version of golangci-lint .
-func GetGolangciLint(version string) ToolFunc {
-	return GetGoTool(ModuleGolangciLint, BinGolangciLint, version)
-}
-
-// GetGotestsum returns a ToolFunc that uses `go get` to install a specific version of gotestsum.
-func GetGotestsum(version string) ToolFunc {
-	return GetGoTool(ModuleGotestsum, BinGotestsum, version)
-}
-
 // GetGoTool returns a ToolFunc that uses `go get` to install a specific version of a module as name.
 func GetGoTool(module, name, version string) ToolFunc {
 	return func(ctx context.Context) error {
@@ -107,9 +99,24 @@ func GetGoTool(module, name, version string) ToolFunc {
 	}
 }
 
+// GetGolangciLint returns a ToolFunc that uses `go get` to install a specific version of golangci-lint .
+func GetGolangciLint(version string) ToolFunc {
+	return GetGoTool(ModuleGolangciLint, BinGolangciLint, version)
+}
+
+// GetGotestsum returns a ToolFunc that uses `go get` to install a specific version of gotestsum.
+func GetGotestsum(version string) ToolFunc {
+	return GetGoTool(ModuleGotestsum, BinGotestsum, version)
+}
+
 // GetGoreleaser returns a ToolFunc that uses `go get` to install a specific versino of goreleaser.
 func GetGoreleaser(version string) ToolFunc {
 	return GetGoTool(ModuleGoreleaser, BinGoreleaser, version)
+}
+
+// GetStentor returns a ToolFunc that uses `go get` to install a specific version of stentor.
+func GetStentor(version string) ToolFunc {
+	return GetGoTool(ModuleStentor, BinStentor, version)
 }
 
 func goGet(ctx context.Context, s string) error {
