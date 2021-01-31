@@ -9,6 +9,20 @@ Changes for the next release can be found in the [".stentor.d" directory](./.ste
 
 <!-- stentor output starts -->
 
+## [v0.4.1] - 2021-01-30
+
+### Fixed
+
+- Fixed `changelog` target to print output.
+  [#5](https://github.com/wfscheper/magelib/issues/5)
+
+
+[v0.4.1]: https://github.com/wfscheper/magelib/compare/v0.4.0...v0.4.1
+
+
+----
+
+
 ## [v0.4.0] - 2021-01-27
 
 ### Added
