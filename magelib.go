@@ -46,8 +46,10 @@ func Changelog(ctx context.Context) error {
 	tags := strings.Split(output, "\n")
 
 	if os.Getenv("MAGELIB_DRY_RUN") == "false" {
+		Say("updating changelog")
 		return sh.Run(exe, "-release", next, tags[len(tags)-1])
 	}
 
-	return sh.Run(exe, next, tags[len(tags)-1])
+	Say("printing changelog update")
+	return sh.RunV(exe, next, tags[len(tags)-1])
 }

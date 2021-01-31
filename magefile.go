@@ -31,7 +31,7 @@ var (
 	getGolangciLint = magelib.GetGolangciLint("v1.32.2")
 	getGoreleaser   = magelib.GetGoreleaser("v0.146.0")
 	getGotestsum    = magelib.GetGotestsum("v0.6.0")
-	getStentor      = magelib.GetStentor("v0.2.0")
+	getStentor      = magelib.GetStentor("v0.2.2")
 )
 
 func init() {
