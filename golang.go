@@ -65,6 +65,8 @@ func (Go) Benchmark(ctx context.Context) error {
 
 // Bulid runs go build
 func (Go) Build(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
+
 	Say("building")
 
 	return gobuild("-v", "./...")
@@ -72,6 +74,8 @@ func (Go) Build(ctx context.Context) error {
 
 // Clean removes generated files
 func (Go) Clean(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
+
 	Say("cleaning files")
 
 	var err error
@@ -84,12 +88,10 @@ func (Go) Clean(ctx context.Context) error {
 
 // Coverage generates coverage reports
 func (Go) Coverage(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, append(TestDeps, mkCoverageDir)...)
 
-	mode := os.Getenv("COVERAGE_MODE")
-	if mode == "" {
-		mode = "atomic"
-	}
+	mode := envString("coverage_mode", "atomic")
 	if err := runTests(
 		"-cover",
 		"-covermode",
@@ -113,17 +115,14 @@ func (Go) Coverage(ctx context.Context) error {
 
 // Exec builds the main binary
 func (g Go) Exec(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, append(BuildDeps, g.Generate)...)
 
 	if ExeName == "" {
 		return errors.New("no executable name set")
 	}
 
-	exe := ExeName
-	if runtime.GOOS == "windows" {
-		exe += ".exe"
-	}
-
+	exe := execPath(ExeName)
 	Say("building " + exe)
 	version, err := sh.Output("git", "describe", "--tags", "--always", "--dirty", "--match=v*")
 	if err != nil {
@@ -145,6 +144,7 @@ func (g Go) Exec(ctx context.Context) error {
 
 // Generate runs go generate
 func (Go) Generate(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, GenerateDeps...)
 
 	rebuild, err := GenerateRebuild(ctx)
@@ -157,29 +157,23 @@ func (Go) Generate(ctx context.Context) error {
 
 // Lint runs golangci-lint
 func (Go) Lint(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, LintDeps...)
 
-	exe := golangcilintPath
-	if runtime.GOOS == "windows" {
-		exe += ".exe"
-	}
-
+	exe := execPath(golangcilintPath)
 	Say("running golangci-lint")
 	return sh.RunV(exe, "run")
 }
 
 // Release runs goreleaser to create a release. Must set MAGELIB_DRY_RUN=false.
 func (Go) Release(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, ReleaseDeps...)
 
-	exe := goreleaserPath
-	if runtime.GOOS == "windows" {
-		exe += ".exe"
-	}
-
-	if dryRun, err := strconv.ParseBool(os.Getenv("MAGELIB_DRY_RUN")); err != nil || dryRun {
+	exe := execPath(goreleaserPath)
+	if DryRun {
 		// run goreleaser in snapshot mode
-		Say("running goreleaser test")
+		Say("running goreleaser dry run")
 		return sh.RunV(exe, "--snapshot", "--skip-publish", "--rm-dist")
 	}
 
@@ -190,6 +184,7 @@ func (Go) Release(ctx context.Context) error {
 
 // Test runs the test suite
 func (Go) Test(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, TestDeps...)
 	Say("running tests")
 	return runTests()
@@ -197,6 +192,7 @@ func (Go) Test(ctx context.Context) error {
 
 // TestRace runs the test suite with race detection
 func (Go) TestRace(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, TestDeps...)
 	Say("running race condition tests")
 	return runTests("-race")
@@ -204,6 +200,7 @@ func (Go) TestRace(ctx context.Context) error {
 
 // TestShort runs only tests marked as short
 func (Go) TestShort(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, TestDeps...)
 	Say("running short tests")
 	return runTests("-short")
@@ -211,6 +208,7 @@ func (Go) TestShort(ctx context.Context) error {
 
 // Vet runs go vet
 func (Go) Vet(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
 	Say("running go vet")
 	return govet("./...")
 }
