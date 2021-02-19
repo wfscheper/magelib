@@ -22,6 +22,7 @@ var (
 
 // Changelog reports the changelog update for the current release
 func Changelog(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, ChangelogDeps...)
 
 	exe := stentorPath
