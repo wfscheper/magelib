@@ -20,6 +20,8 @@ const (
 )
 
 var (
+	// CleanPaths are additional paths to delete when running the clean target.
+	CleanPaths []string
 	// ExeName sets the filename of a CLI executable.
 	ExeName string
 	// MainPackage sets the full package name of the main package
@@ -54,6 +56,9 @@ var (
 	// commands
 	gobuild = sh.RunCmd(goexe, "build")
 	govet   = sh.RunCmd(goexe, "vet")
+
+	// default paths to clean
+	cleanPaths = []string{"bin", "dist", testDir, toolsBinDir}
 )
 
 type Go mg.Namespace
@@ -68,7 +73,6 @@ func (Go) Build(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
 
 	Say("building")
-
 	return gobuild("-v", "./...")
 }
 
@@ -76,14 +80,22 @@ func (Go) Build(ctx context.Context) error {
 func (Go) Clean(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
 
-	Say("cleaning files")
+	cleanPaths = append(cleanPaths, CleanPaths...)
 
 	var err error
-	for _, path := range []string{"bin", "dist", testDir, toolsBinDir} {
+	Say("cleaning files")
+	for _, path := range cleanPaths {
 		err = sh.Rm(path)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
 	}
 
-	return err
+	if err != nil {
+		return errors.New("failed to clean some files")
+	}
+
+	return nil
 }
 
 // Coverage generates coverage reports
@@ -122,8 +134,6 @@ func (g Go) Exec(ctx context.Context) error {
 		return errors.New("no executable name set")
 	}
 
-	exe := execPath(ExeName)
-	Say("building " + exe)
 	version, err := sh.Output("git", "describe", "--tags", "--always", "--dirty", "--match=v*")
 	if err != nil {
 		return err
@@ -139,6 +149,8 @@ func (g Go) Exec(ctx context.Context) error {
 		" -X main.commit=" + commit +
 		" -X main.buildDate=" + buildDate.Format(time.RFC3339)
 
+	exe := execPath(ExeName)
+	Say("building " + exe)
 	return gobuild("-v", "-o", filepath.Join("bin", exe), "-ldflags", ldflags, MainPackage)
 }
 
@@ -186,6 +198,7 @@ func (Go) Release(ctx context.Context) error {
 func (Go) Test(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, TestDeps...)
+
 	Say("running tests")
 	return runTests()
 }
@@ -194,6 +207,7 @@ func (Go) Test(ctx context.Context) error {
 func (Go) TestRace(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, TestDeps...)
+
 	Say("running race condition tests")
 	return runTests("-race")
 }
@@ -202,6 +216,7 @@ func (Go) TestRace(ctx context.Context) error {
 func (Go) TestShort(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, TestDeps...)
+
 	Say("running short tests")
 	return runTests("-short")
 }
