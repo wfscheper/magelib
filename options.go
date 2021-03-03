@@ -38,11 +38,12 @@ func setup(ctx context.Context) error {
 	projectVersion := envString("version", ProjectVersion)
 	if projectVersion == "" {
 		var err error
-		ProjectVersion, err = version(ctx)
+		projectVersion, err = version(ctx)
 		if err != nil {
 			return err
 		}
 	}
+	ProjectVersion = projectVersion
 
 	return nil
 }
