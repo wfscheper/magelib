@@ -1,9 +1,13 @@
 package magelib
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 	"strings"
+
+	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 )
 
 // Say prints the formatted string to stdout.
@@ -18,4 +22,21 @@ func execPath(p string) string {
 	}
 
 	return p
+}
+
+func version(ctx context.Context) (string, error) {
+	mg.CtxDeps(ctx, VersionDeps...)
+
+	var args []string
+	if IgnoreModules {
+		args = append(args, "-modules=false")
+	}
+
+	output, err := sh.Output(execPath(gotaggerPath), args...)
+	if err != nil {
+		return "", err
+	}
+
+	version := strings.Split(output, "\n")[0]
+	return version, nil
 }
