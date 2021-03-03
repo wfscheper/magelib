@@ -8,6 +8,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Changes for the next release can be found in the [".stentor.d" directory](./.stentor.d).
 
 <!-- stentor output starts -->
+## [v0.5.0] - 2021-03-02
+
+### Added
+
+- Adds a `CleanPaths` slice
+  for adding additional files to clean.
+  [#6](https://github.com/wfscheper/magelib/issues/6)
+- Adds [gotagger](https://github.com/sassoftware/gotagger)
+  as the built-in versioning tool.
+  [#6](https://github.com/wfscheper/magelib/issues/6)
+- Adds a `go:format` target
+  to the golang package.
+
+  This target runs `golangci-lint` in "fix" mode.
+  [#7](https://github.com/wfscheper/magelib/issues/7)
+
+
+[v0.5.0]: https://github.com/wfscheper/magelib/compare/v0.4.1...v0.5.0
+
+
+----
+
 
 ## [v0.4.1] - 2021-01-30
 
