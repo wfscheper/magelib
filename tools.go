@@ -14,13 +14,15 @@ import (
 
 const (
 	BinGolangciLint = "golangci-lint"
-	BinGotestsum    = "gotestsum"
 	BinGoreleaser   = "goreleaser"
+	BinGotagger     = "gotagger"
+	BinGotestsum    = "gotestsum"
 	BinStentor      = "stentor"
 
 	ModuleGolangciLint = "github.com/golangci/golangci-lint/cmd/golangci-lint"
-	ModuleGotestsum    = "gotest.tools/gotestsum"
 	ModuleGoreleaser   = "github.com/goreleaser/goreleaser"
+	ModuleGotagger     = "github.com/sassoftware/gotagger/cmd/gotagger"
+	ModuleGotestsum    = "gotest.tools/gotestsum"
 	ModuleStentor      = "github.com/wfscheper/stentor/cmd/stentor"
 
 	toolsDir  = "tools"
@@ -94,7 +96,6 @@ func GetGoTool(module, name, version string) ToolFunc {
 			return goGet(ctx, module+"@"+version)
 		}
 
-		Say("%s@%s up-to-date", module, version)
 		return err
 	}
 }
@@ -104,14 +105,19 @@ func GetGolangciLint(version string) ToolFunc {
 	return GetGoTool(ModuleGolangciLint, BinGolangciLint, version)
 }
 
-// GetGotestsum returns a ToolFunc that uses `go get` to install a specific version of gotestsum.
-func GetGotestsum(version string) ToolFunc {
-	return GetGoTool(ModuleGotestsum, BinGotestsum, version)
-}
-
 // GetGoreleaser returns a ToolFunc that uses `go get` to install a specific versino of goreleaser.
 func GetGoreleaser(version string) ToolFunc {
 	return GetGoTool(ModuleGoreleaser, BinGoreleaser, version)
+}
+
+// GetGotagger returns a ToolFunc that uses `go get` to install a specific versin of gotagger.
+func GetGotagger(version string) ToolFunc {
+	return GetGoTool(ModuleGotagger, BinGotagger, version)
+}
+
+// GetGotestsum returns a ToolFunc that uses `go get` to install a specific version of gotestsum.
+func GetGotestsum(version string) ToolFunc {
+	return GetGoTool(ModuleGotestsum, BinGotestsum, version)
 }
 
 // GetStentor returns a ToolFunc that uses `go get` to install a specific version of stentor.

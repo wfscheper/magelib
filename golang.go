@@ -134,20 +134,18 @@ func (g Go) Exec(ctx context.Context) error {
 		return errors.New("no executable name set")
 	}
 
-	version, err := sh.Output("git", "describe", "--tags", "--always", "--dirty", "--match=v*")
-	if err != nil {
-		return err
-	}
-
 	commit, err := sh.Output("git", "rev-parse", "HEAD")
 	if err != nil {
 		return err
 	}
 
 	buildDate := time.Now().UTC()
-	ldflags := "-X main.version=" + version +
-		" -X main.commit=" + commit +
-		" -X main.buildDate=" + buildDate.Format(time.RFC3339)
+	ldflags := fmt.Sprintf(
+		"-X main.version=%s -X main.commit=%s -X main.buildDate=%s",
+		ProjectVersion,
+		commit,
+		buildDate.Format(time.RFC3339),
+	)
 
 	exe := execPath(ExeName)
 	Say("building " + exe)

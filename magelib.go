@@ -2,9 +2,8 @@ package magelib
 
 import (
 	"context"
-	"os"
+	"fmt"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/magefile/mage/mg"
@@ -15,9 +14,14 @@ var (
 	// ChangelogDeps is a slice of targets that are dependencies for the changelog target
 	ChangelogDeps []interface{}
 
-	// tools
+	// VersionDeps is a slice of targets that are dependencies for the version target
+	VersionDeps []interface{}
+
 	toolsBinDir = filepath.Join(toolsDir, "bin")
-	stentorPath = filepath.Join(toolsBinDir, "stentor")
+
+	// tools
+	gotaggerPath = filepath.Join(toolsBinDir, "gotagger")
+	stentorPath  = filepath.Join(toolsBinDir, "stentor")
 )
 
 // Changelog reports the changelog update for the current release
@@ -25,12 +29,7 @@ func Changelog(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, ChangelogDeps...)
 
-	exe := stentorPath
-	if runtime.GOOS == "windows" {
-		exe += ".exe"
-	}
-
-	next := os.Getenv("MAGELIB_NEXT_VERSION")
+	next := envString("next_version", "")
 	if next == "" {
 		output, err := sh.Output("git", "describe", "--dirty", "--always", "--long")
 		if err != nil {
@@ -46,11 +45,18 @@ func Changelog(ctx context.Context) error {
 
 	tags := strings.Split(output, "\n")
 
-	if os.Getenv("MAGELIB_DRY_RUN") == "false" {
-		Say("updating changelog")
-		return sh.Run(exe, "-release", next, tags[len(tags)-1])
+	exe := execPath(stentorPath)
+	if DryRun {
+		Say("printing changelog update")
+		return sh.RunV(exe, next, tags[len(tags)-1])
 	}
 
-	Say("printing changelog update")
-	return sh.RunV(exe, next, tags[len(tags)-1])
+	Say("updating changelog")
+	return sh.Run(exe, "-release", next, tags[len(tags)-1])
+}
+
+// Version reports the current project version
+func Version(ctx context.Context) {
+	mg.SerialCtxDeps(ctx, setup)
+	fmt.Println(ProjectVersion)
 }
