@@ -152,6 +152,15 @@ func (g Go) Exec(ctx context.Context) error {
 	return gobuild("-v", "-o", filepath.Join("bin", exe), "-ldflags", ldflags, MainPackage)
 }
 
+// Format runs golangci-lint in "fix" mode
+func (Go) Format(ctx context.Context) error {
+	mg.SerialCtxDeps(ctx, setup)
+	mg.CtxDeps(ctx, LintDeps...)
+
+	Say("running golangci-lint fix")
+	return sh.RunV(execPath(golangcilintPath), "run", "--fix")
+}
+
 // Generate runs go generate
 func (Go) Generate(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
@@ -170,9 +179,8 @@ func (Go) Lint(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, LintDeps...)
 
-	exe := execPath(golangcilintPath)
 	Say("running golangci-lint")
-	return sh.RunV(exe, "run")
+	return sh.RunV(execPath(golangcilintPath), "run")
 }
 
 // Release runs goreleaser to create a release. Must set MAGELIB_DRY_RUN=false.
