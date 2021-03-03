@@ -48,18 +48,24 @@ func setup(ctx context.Context) error {
 	return nil
 }
 
-func envBool(name string, def bool) bool {
-	if b, err := strconv.ParseBool(envString(name, "")); err != nil {
-		return b
+func envBool(key string, def bool) bool {
+	if v, ok := lookupEnv(key); ok {
+		if b, err := strconv.ParseBool(v); err == nil {
+			return b
+		}
 	}
 
 	return def
 }
 
-func envString(name string, def string) string {
-	if v, ok := os.LookupEnv(envPrefix + strings.ToUpper(name)); ok {
+func envString(key string, def string) string {
+	if v, ok := lookupEnv(key); ok {
 		return v
 	}
 
 	return def
+}
+
+func lookupEnv(key string) (string, bool) {
+	return os.LookupEnv(envPrefix + strings.ToUpper(key))
 }
