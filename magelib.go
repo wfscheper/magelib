@@ -29,15 +29,6 @@ func Changelog(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, ChangelogDeps...)
 
-	next := envString("next_version", "")
-	if next == "" {
-		output, err := sh.Output("git", "describe", "--dirty", "--always", "--long")
-		if err != nil {
-			return err
-		}
-		next = strings.TrimSpace(output)
-	}
-
 	output, err := sh.Output("git", "tag", "--list", "--sort", "version:refname", "v*")
 	if err != nil {
 		return err
@@ -48,11 +39,11 @@ func Changelog(ctx context.Context) error {
 	exe := execPath(stentorPath)
 	if DryRun {
 		Say("printing changelog update")
-		return sh.RunV(exe, next, tags[len(tags)-1])
+		return sh.RunV(exe, ProjectVersion, tags[len(tags)-1])
 	}
 
 	Say("updating changelog")
-	return sh.Run(exe, "-release", next, tags[len(tags)-1])
+	return sh.Run(exe, "-release", ProjectVersion, tags[len(tags)-1])
 }
 
 // Version reports the current project version
