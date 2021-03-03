@@ -4,6 +4,7 @@
 Currently, `magelib` intended for go development.
 Other languages may be added when needed.
 
+
 ## Usage
 
 Follow the usual method for importing mage targets:
@@ -13,14 +14,18 @@ Follow the usual method for importing mage targets:
 _ "github.com/wfscheper/magelib"
 ```
 
+
 ## Configuration
 
 `magelib` has several configurable options:
 
+
 ### Executable name
 
-Set the `magelib.ExecName` variable.
-This is best done in an `init` function:
+If your project produces a binary,
+then set the `magelib.ExeName` variable
+to the name of your executable.
+Setting this is best done in an `init` function:
 
 ```golang
 func init() {
@@ -28,12 +33,85 @@ func init() {
 }
 ```
 
-### Build Tools
 
-`magelib` itself uses
-[golangci-lint](https://golangci-lint.run/),
-[gotestsum](https://github.com/gotestyourself/gotestsum#documentation),
-and [goreleaser](https://goreleaser.com/intro/).
+### Main package
+
+If your main package is not at the root of your project,
+then set the `magelib.MainPackage` variable
+to the full path of your main package.
+Setting this is best done in an `init` function:
+
+```golang
+func init() {
+    magelib.MainPackage = "example.com/foo/cmd/foo"
+}
+```
+
+
+### Dry run mode
+
+Some `magelib` targets support a "dry run" mode,
+where they only report what would be done.
+This is best set via an environment variable:
+
+```bash
+MAGELIB_DRY_RUN=true mage
+```
+
+
+## Project Versioning
+
+`magelib` uses [gotagger] to version projects
+based on their commit history and tags.
+This requires using [conventional commits].
+If your project does not wish to adopt conventional commits,
+or if you want direct control over your project's version,
+then set the `magelib.ProjectVersion` variable.
+Setting this is best done in an `init` function:
+
+```golang
+func init() {
+    magelib.ProjectVersion = "1.2.3"
+}
+```
+
+For situations where the full git history is not available,
+you can also set the project version
+via the `MAGELIB_VERSION` environment variable.
+
+```bash
+MAGELIB_VERSION=1.2.3
+```
+
+
+### Ignore go modules
+
+For `magelib` projects that are not themselves written in golang,
+you will want to disable strict module versioning rules
+by setting the `magelib.IgnoreModules` variable.
+Setting this is best done in an `init` function:
+
+```golang
+func init() {
+    magelib.IgnoreModules = true
+}
+```
+
+
+## Changelog Management
+
+`magelib` uses [stentor] for changelog management.
+
+
+## Tools
+
+`magelib` itself uses several external tools:
+
+- [golangci-lint] for linting
+- [goreleaser] for creating github releases
+- [gotagger] for project versioning
+- [gotestsum] as a test driver
+- [stentor] for changelog management
 
 As a user of `magelib`,
 you control the version of the built-in tools,
@@ -62,6 +140,7 @@ func init() {
     }
 }
 ```
+
 
 ### Custom target deps
 
@@ -98,6 +177,7 @@ func init() {
 }
 ```
 
+
 ### Complete example
 
 ```golang
@@ -124,6 +204,9 @@ var (
 )
 
 func init() {
+    magelib.ExeName = "example"
+    magelib.MainPackage = "example.com/example/cmd/example"
+
     magelib.LintDeps = []interface{}{
         func(ctx context.Context) error { return getGolangciLint(ctx) },
     }
@@ -141,8 +224,14 @@ func init() {
     }
 }
 
-// All runs format, lint, vet, build, and test targets
+// All runs format, lint, build, and test targets
 func All(ctx context.Context) {
-    mg.SerialCtxDeps(ctx, magelib.Go.Lint, magelib.Go.Build, magelib.Go.Test)
+    mg.SerialCtxDeps(ctx, magelib.Go.Format, magelib.Go.Lint, magelib.Go.Build, magelib.Go.Test)
 }
 ```
+
+[golangci-lint]: https://golangci-lint.run/
+[goreleaser]: https://goreleaser.com/intro/
+[gotagger]: https://github.com/sassoftware/gotagger
+[gotestsum]: https://github.com/gotestyourself/gotestsum#documentation
+[stentor]: https://github.com/wfscheper/stentor
