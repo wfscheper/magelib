@@ -130,7 +130,8 @@ func goGet(ctx context.Context, s string) error {
 	if err != nil {
 		return err
 	}
-	cmd := exec.CommandContext(ctx, "go", "get", s)
+
+	cmd := exec.CommandContext(ctx, "go", "install", s)
 	cmd.Dir = filepath.Join(wd, toolsDir)
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, "GOBIN="+filepath.Join(wd, toolsBinDir))

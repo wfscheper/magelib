@@ -20,10 +20,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.15
+          go-version: 1.16
 
       - name: run mage
-        uses: magefile/mage-action@v1.4.1
+        uses: |
+          magefile/mage-action@a509abc870872725cfe6af8342805d9236591571 # v1.5.0
 
       - name: tag and release
         env:
