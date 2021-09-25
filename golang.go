@@ -112,17 +112,14 @@ func (Go) Coverage(ctx context.Context) error {
 	); err != nil {
 		return err
 	}
-	if err := sh.Run(
+	return sh.Run(
 		goexe,
 		"tool",
 		"cover",
 		"-html="+coverageProfile,
 		"-o",
 		filepath.Join(coverageDir, "index.html"),
-	); err != nil {
-		return err
-	}
-	return nil
+	)
 }
 
 // Exec builds the main binary

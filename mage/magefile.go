@@ -28,11 +28,11 @@ var (
 	// Default mage target
 	Default = All
 
-	getGolangciLint = magelib.GetGolangciLint("v1.32.2")
-	getGoreleaser   = magelib.GetGoreleaser("v0.146.0")
-	getGotagger     = magelib.GetGotagger("v0.6.1")
-	getGotestsum    = magelib.GetGotestsum("v0.6.0")
-	getStentor      = magelib.GetStentor("v0.2.2")
+	getGolangciLint = magelib.GetGolangciLint("v1.41.1")
+	getGoreleaser   = magelib.GetGoreleaser("v0.179.0")
+	getGotagger     = magelib.GetGotagger("v0.6.3")
+	getGotestsum    = magelib.GetGotestsum("v1.7.0")
+	getStentor      = magelib.GetStentor("v0.2.3")
 )
 
 func init() {
