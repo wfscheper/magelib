@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Changes for the next release can be found in the [".stentor.d" directory](./.stentor.d).
 
 <!-- stentor output starts -->
+## [v0.6.0] - 2021-09-26
+
+### Deprecated
+
+- go 1.15 is no longer supported,
+  so `magelib` is dropping support for it.
+  [#8](https://github.com/wfscheper/magelib/issues/8)
+- Now that `go install` supports specifying a version,
+  `magelib` no longer needs a tools module to track build to versions.
+  [#8](https://github.com/wfscheper/magelib/issues/8)
+
+
+[v0.6.0]: https://github.com/wfscheper/magelib/compare/v0.5.0...v0.6.0
+
+
+----
+
+
 ## [v0.5.0] - 2021-03-02
 
 ### Added
