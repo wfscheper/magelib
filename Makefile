@@ -1,4 +1,4 @@
-MAGE = tools/bin/mage
+MAGE = bin/mage
 
 .PHONY: default
 default: all

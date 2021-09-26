@@ -17,7 +17,7 @@ var (
 	// VersionDeps is a slice of targets that are dependencies for the version target
 	VersionDeps []interface{}
 
-	toolsBinDir = filepath.Join(toolsDir, "bin")
+	toolsBinDir = "bin"
 
 	// tools
 	gotaggerPath = filepath.Join(toolsBinDir, "gotagger")
