@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
-	"strconv"
 	"time"
 
 	"github.com/magefile/mage/mg"
@@ -145,9 +143,9 @@ func (g Go) Exec(ctx context.Context) error {
 		buildDate.Format(time.RFC3339),
 	)
 
-	exe := execPath(ExeName)
+	exe := filepath.Join("bin", execName(ExeName))
 	Say("building " + exe)
-	return gobuild("-v", "-o", filepath.Join("bin", exe), "-ldflags", ldflags, MainPackage)
+	return gobuild("-v", "-o", exe, "-ldflags", ldflags, MainPackage)
 }
 
 // Format runs golangci-lint in "fix" mode
@@ -156,7 +154,7 @@ func (Go) Format(ctx context.Context) error {
 	mg.CtxDeps(ctx, LintDeps...)
 
 	Say("running golangci-lint fix")
-	return sh.RunV(execPath(golangcilintPath), "run", "--fix")
+	return sh.RunV(execName(golangcilintPath), "run", "--fix")
 }
 
 // Generate runs go generate
@@ -178,7 +176,7 @@ func (Go) Lint(ctx context.Context) error {
 	mg.CtxDeps(ctx, LintDeps...)
 
 	Say("running golangci-lint")
-	return sh.RunV(execPath(golangcilintPath), "run")
+	return sh.RunV(execName(golangcilintPath), "run")
 }
 
 // Release runs goreleaser to create a release. Must set MAGELIB_DRY_RUN=false.
@@ -186,7 +184,7 @@ func (Go) Release(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
 	mg.CtxDeps(ctx, ReleaseDeps...)
 
-	exe := execPath(goreleaserPath)
+	exe := execName(goreleaserPath)
 	if DryRun {
 		// run goreleaser in snapshot mode
 		Say("running goreleaser dry run")
@@ -240,18 +238,9 @@ func mkCoverageDir(_ context.Context) error {
 	return err
 }
 
-func runTests(_ context.Context, testType ...string) error {
-	gotestArgs := []string{"--", fmt.Sprintf("-timeout=%s", TestTimeout)}
-	if update, err := strconv.ParseBool(os.Getenv("UPDATE_GOLDEN")); err == nil && update {
-		testType = append(testType, "./cmd/stentor", "-update")
-	} else {
-		testType = append(testType, "./...")
-	}
-	testType = append(gotestArgs, testType...)
+func runTests(_ context.Context, args ...string) error {
+	args = append(args, "./...")
+	args = append([]string{"--", fmt.Sprintf("-timeout=%s", TestTimeout)}, args...)
 
-	exe := gotestsumPath
-	if runtime.GOOS == "windows" {
-		exe += ".exe"
-	}
-	return sh.RunV(exe, testType...)
+	return sh.RunV(execName(gotestsumPath), args...)
 }

@@ -36,7 +36,7 @@ func Changelog(ctx context.Context) error {
 
 	tags := strings.Split(output, "\n")
 
-	exe := execPath(stentorPath)
+	exe := execName(stentorPath)
 	if DryRun {
 		Say("printing changelog update")
 		return sh.RunV(exe, ProjectVersion, tags[len(tags)-1])
