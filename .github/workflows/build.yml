@@ -38,7 +38,7 @@ jobs:
 
       - name: Send coverage
         # yamllint disable-line rule:line-length
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2.1.0
+        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # v3.1.4
         with:
           file: ./tests/coverage/coverage.out
           flags: unittests,${{ matrix.os }}
