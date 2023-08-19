@@ -15,4 +15,4 @@ jobs:
       # yamllint disable-line rule:line-length
       - uses: actions/setup-python@dc73133d4da04e56a135ae2246682783cc7c7cb6 # v2.2.2
       # yamllint disable-line rule:line-length
-      - uses: pre-commit/action@9b88afc9cd57fd75b655d5c71bd38146d07135fe # v2.0.3
+      - uses: pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507 # v3.0.0
