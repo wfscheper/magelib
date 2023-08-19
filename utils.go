@@ -16,7 +16,7 @@ func Say(format string, args ...interface{}) {
 	fmt.Printf("▶ "+format+"…\n", args...)
 }
 
-func execPath(p string) string {
+func execName(p string) string {
 	if runtime.GOOS == "windows" {
 		return p + ".exe"
 	}
@@ -32,7 +32,7 @@ func version(ctx context.Context) (string, error) {
 		args = append(args, "-modules=false")
 	}
 
-	output, err := sh.Output(execPath(gotaggerPath), args...)
+	output, err := sh.Output(execName(gotaggerPath), args...)
 	if err != nil {
 		return "", err
 	}

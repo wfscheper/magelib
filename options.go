@@ -35,15 +35,15 @@ func setup(ctx context.Context) error {
 	DryRun = envBool("dry_run", true)
 	IgnoreModules = envBool("ignore_modules", IgnoreModules)
 
-	projectVersion := envString("version", ProjectVersion)
-	if projectVersion == "" {
-		var err error
-		projectVersion, err = version(ctx)
+	ProjectVersion = envString("version", ProjectVersion)
+	if ProjectVersion == "" {
+		v, err := version(ctx)
 		if err != nil {
 			return err
 		}
+
+		ProjectVersion = v
 	}
-	ProjectVersion = projectVersion
 
 	return nil
 }
