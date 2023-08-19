@@ -7,6 +7,10 @@ default: all
 help: | $(MAGE)
 	@$(MAGE) -l
 
+.PHONY: clean
+clean:
+	$(RM) -r bin/
+
 $(MAGE): mage/go.mod mage/go.sum mage/mage.go mage/magefile.go ; $(info ▶ building $@)
 	cd mage/ && go run mage.go -compile ../$@
 
