@@ -65,7 +65,7 @@ type Go mg.Namespace
 
 // Benchmark runs the benchmark suite
 func (Go) Benchmark(ctx context.Context) error {
-	return runTests("-run=__absolutelynothing__", "-bench")
+	return runTests(ctx, "-run=__absolutelynothing__", "-bench")
 }
 
 // Bulid runs go build
@@ -105,6 +105,7 @@ func (Go) Coverage(ctx context.Context) error {
 
 	mode := envString("coverage_mode", "atomic")
 	if err := runTests(
+		ctx,
 		"-cover",
 		"-covermode",
 		mode,
@@ -203,7 +204,7 @@ func (Go) Test(ctx context.Context) error {
 	mg.CtxDeps(ctx, TestDeps...)
 
 	Say("running tests")
-	return runTests()
+	return runTests(ctx)
 }
 
 // TestRace runs the test suite with race detection
@@ -212,7 +213,7 @@ func (Go) TestRace(ctx context.Context) error {
 	mg.CtxDeps(ctx, TestDeps...)
 
 	Say("running race condition tests")
-	return runTests("-race")
+	return runTests(ctx, "-race")
 }
 
 // TestShort runs only tests marked as short
@@ -221,7 +222,7 @@ func (Go) TestShort(ctx context.Context) error {
 	mg.CtxDeps(ctx, TestDeps...)
 
 	Say("running short tests")
-	return runTests("-short")
+	return runTests(ctx, "-short")
 }
 
 // Vet runs go vet
@@ -231,7 +232,7 @@ func (Go) Vet(ctx context.Context) error {
 	return govet("./...")
 }
 
-func mkCoverageDir(ctx context.Context) error {
+func mkCoverageDir(_ context.Context) error {
 	_, err := os.Stat(coverageDir)
 	if os.IsNotExist(err) {
 		return os.MkdirAll(coverageDir, 0755)
@@ -239,7 +240,7 @@ func mkCoverageDir(ctx context.Context) error {
 	return err
 }
 
-func runTests(testType ...string) error {
+func runTests(_ context.Context, testType ...string) error {
 	gotestArgs := []string{"--", fmt.Sprintf("-timeout=%s", TestTimeout)}
 	if update, err := strconv.ParseBool(os.Getenv("UPDATE_GOLDEN")); err == nil && update {
 		testType = append(testType, "./cmd/stentor", "-update")

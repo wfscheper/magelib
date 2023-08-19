@@ -12,20 +12,22 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        go_version: [1.16, 1.17]
-        os: [ubuntu-latest, macOS-latest]
+        go_version: [stable, oldstable]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
     steps:
-      - name: Set up Go ${{ matrix.go_version }}
-        uses: actions/setup-go@331ce1d993939866bb63c32c6cbbfd48fa76fc57 # v2.1.4
-        with:
-          go-version: ${{ matrix.go_version }}
-        id: go
-
       - name: Check out code into the Go module directory
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
         with:
           # gotagger needs the whole histor
           fetch-depth: 0
+
+      - name: Set up Go ${{ matrix.go_version }}
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe
+        with:
+          go-version: ${{ matrix.go_version }}
+          cache-dependency-path: |
+            go.sum
+            mage/go.sum
 
       - name: Get dependencies
         run: go mod download
@@ -38,7 +40,7 @@ jobs:
 
       - name: Send coverage
         # yamllint disable-line rule:line-length
-        uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2.1.0
+        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d
         with:
           file: ./tests/coverage/coverage.out
           flags: unittests,${{ matrix.os }}
