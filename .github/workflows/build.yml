@@ -42,5 +42,5 @@ jobs:
         # yamllint disable-line rule:line-length
         uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d
         with:
-          file: ./tests/coverage/coverage.out
+          file: ./coverage.out
           flags: unittests,${{ matrix.os }}

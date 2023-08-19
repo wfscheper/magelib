@@ -12,11 +12,6 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
-const (
-	// tests
-	testDir = "tests"
-)
-
 var (
 	// CleanPaths are additional paths to delete when running the clean target.
 	CleanPaths []string
@@ -43,8 +38,7 @@ var (
 	goexe = "go"
 
 	// tests
-	coverageDir     = filepath.Join(testDir, "coverage")
-	coverageProfile = filepath.Join(coverageDir, "coverage.out")
+	coverageProfile = "coverage.out"
 
 	// tools
 	golangcilintPath = filepath.Join(toolsBinDir, "golangci-lint")
@@ -56,7 +50,7 @@ var (
 	govet   = sh.RunCmd(goexe, "vet")
 
 	// default paths to clean
-	cleanPaths = []string{"bin", "dist", testDir, toolsBinDir}
+	cleanPaths = []string{"bin", "dist", toolsBinDir, coverageProfile}
 )
 
 type Go mg.Namespace
@@ -99,26 +93,10 @@ func (Go) Clean(ctx context.Context) error {
 // Coverage generates coverage reports
 func (Go) Coverage(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
-	mg.CtxDeps(ctx, append(TestDeps, mkCoverageDir)...)
+	mg.CtxDeps(ctx, TestDeps...)
 
 	mode := envString("coverage_mode", "atomic")
-	if err := runTests(
-		ctx,
-		"-cover",
-		"-covermode",
-		mode,
-		"-coverprofile="+coverageProfile,
-	); err != nil {
-		return err
-	}
-	return sh.Run(
-		goexe,
-		"tool",
-		"cover",
-		"-html="+coverageProfile,
-		"-o",
-		filepath.Join(coverageDir, "index.html"),
-	)
+	return runTests(ctx, "-cover", "-covermode", mode, "-coverprofile="+coverageProfile)
 }
 
 // Exec builds the main binary
@@ -228,14 +206,6 @@ func (Go) Vet(ctx context.Context) error {
 	mg.SerialCtxDeps(ctx, setup)
 	Say("running go vet")
 	return govet("./...")
-}
-
-func mkCoverageDir(_ context.Context) error {
-	_, err := os.Stat(coverageDir)
-	if os.IsNotExist(err) {
-		return os.MkdirAll(coverageDir, 0755)
-	}
-	return err
 }
 
 func runTests(_ context.Context, args ...string) error {
