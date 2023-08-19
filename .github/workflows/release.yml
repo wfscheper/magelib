@@ -24,7 +24,7 @@ jobs:
 
       - name: Build tools
         run: |
-          make tools:build
+          make version
 
       - name: tag and release
         env:
