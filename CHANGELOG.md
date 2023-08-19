@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Changes for the next release can be found in the [".stentor.d" directory](./.stentor.d).
 
 <!-- stentor output starts -->
+## [v0.7.0] - 2023-08-19
+
+### Added
+
+- `magelib` now supports versioning tools via a module.
+
+  This means consumers can take advantage of
+  Go module checksums for security
+  and use the standard Go tools for updating versions.
+  [#21](https://github.com/wfscheper/magelib/issues/21)
+
+
+[v0.7.0]: https://github.com/wfscheper/magelib/compare/v0.6.0...v0.7.0
+
+
+----
+
+
 ## [v0.6.0] - 2021-09-26
 
 ### Deprecated
