@@ -48,13 +48,22 @@ func (Tools) Build(ctx context.Context) error {
 	return nil
 }
 
-// GetGoTool returns a ToolFunc that uses `go get` to install a specific version of a module as name.
-func GetGoTool(module, name, version string) ToolFunc {
+// GetGoTool returns a ToolFunc that uses `go install` to install a specific version of a module as name.
+//
+// If no `version` is specified,
+// then just the module name is used.
+// This is useful if you just want the latest version,
+// or you want to manage the version via a go module.
+func GetGoTool(module, name string, versions ...string) ToolFunc {
+	if len(versions) > 0 {
+		module += "@" + versions[0]
+	}
+
 	return func(ctx context.Context) error {
 		rebuild, err := target.Glob(filepath.Join(toolsBinDir, name))
 		if err == nil && rebuild {
-			Say("building %s@%s", module, version)
-			return goGet(ctx, module+"@"+version)
+			Say("building %s", module)
+			return goInstall(ctx, module)
 		}
 
 		return err
@@ -62,35 +71,42 @@ func GetGoTool(module, name, version string) ToolFunc {
 }
 
 // GetGolangciLint returns a ToolFunc that uses `go get` to install a specific version of golangci-lint .
-func GetGolangciLint(version string) ToolFunc {
-	return GetGoTool(ModuleGolangciLint, BinGolangciLint, version)
+func GetGolangciLint(version ...string) ToolFunc {
+	return GetGoTool(ModuleGolangciLint, BinGolangciLint, version...)
 }
 
 // GetGoreleaser returns a ToolFunc that uses `go get` to install a specific versino of goreleaser.
-func GetGoreleaser(version string) ToolFunc {
-	return GetGoTool(ModuleGoreleaser, BinGoreleaser, version)
+func GetGoreleaser(version ...string) ToolFunc {
+	return GetGoTool(ModuleGoreleaser, BinGoreleaser, version...)
 }
 
 // GetGotagger returns a ToolFunc that uses `go get` to install a specific versin of gotagger.
-func GetGotagger(version string) ToolFunc {
-	return GetGoTool(ModuleGotagger, BinGotagger, version)
+func GetGotagger(version ...string) ToolFunc {
+	return GetGoTool(ModuleGotagger, BinGotagger, version...)
 }
 
 // GetGotestsum returns a ToolFunc that uses `go get` to install a specific version of gotestsum.
-func GetGotestsum(version string) ToolFunc {
-	return GetGoTool(ModuleGotestsum, BinGotestsum, version)
+func GetGotestsum(version ...string) ToolFunc {
+	return GetGoTool(ModuleGotestsum, BinGotestsum, version...)
 }
 
 // GetStentor returns a ToolFunc that uses `go get` to install a specific version of stentor.
-func GetStentor(version string) ToolFunc {
-	return GetGoTool(ModuleStentor, BinStentor, version)
+func GetStentor(version ...string) ToolFunc {
+	return GetGoTool(ModuleStentor, BinStentor, version...)
 }
 
-func goGet(_ context.Context, s string) error {
+func goInstall(_ context.Context, module string) error {
 	wd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	return sh.RunWith(map[string]string{"GOBIN": filepath.Join(wd, toolsBinDir)}, "go", "install", s)
+	if err := os.Chdir(filepath.Join(wd, "mage")); err != nil {
+		return err
+	}
+	defer func() {
+		_ = os.Chdir(wd)
+	}()
+
+	return sh.RunWith(map[string]string{"GOBIN": filepath.Join(wd, toolsBinDir)}, "go", "install", module)
 }
