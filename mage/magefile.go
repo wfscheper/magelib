@@ -11,6 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build mage
 // +build mage
 
 package main
@@ -28,11 +29,11 @@ var (
 	// Default mage target
 	Default = All
 
-	getGolangciLint = magelib.GetGolangciLint("v1.41.1")
-	getGoreleaser   = magelib.GetGoreleaser("v0.180.0")
-	getGotagger     = magelib.GetGotagger("v0.6.3")
-	getGotestsum    = magelib.GetGotestsum("v1.7.0")
-	getStentor      = magelib.GetStentor("v0.2.3")
+	getGolangciLint = magelib.GetGolangciLint("v1.54.1")
+	getGoreleaser   = magelib.GetGoreleaser("v1.20.0")
+	getGotagger     = magelib.GetGotagger("v0.9.0")
+	getGotestsum    = magelib.GetGotestsum("v1.10.0")
+	getStentor      = magelib.GetStentor("v0.3.0")
 )
 
 func init() {
