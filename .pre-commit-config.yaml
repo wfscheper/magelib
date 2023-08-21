@@ -40,7 +40,7 @@ repos:
       - id: actionlint
 
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.54.1
+    rev: v1.54.2
     hooks:
       - id: golangci-lint
         args: [--allow-parallel-runners]
